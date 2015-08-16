@@ -236,11 +236,13 @@ class OpenFMRIAnalyzer(object):
 
 			# TODO need to remove temporary files created by this process	
 			
-			os.raname(anat_filename,anatfilename.replace('.nii.gz','_pre_restore.nii.gz'))
+			os.rename(anat_filename,anatfilename.replace('.nii.gz','_pre_restore.nii.gz'))
 			shutil.copy(fast.outputs.image_restored,anat_filename)
 			return anat_filename
 		except:
-			return restore_file
+			os.rename(anat_filename,anat_filename.replace('.nii.gz','_pre_restore.nii.gz'))
+			shutil.copy(restore_file, anat_filename)
+			return anat_filename
 
 	def extract_brain(self, subject):
 		# Check whether brain has already been extracted
