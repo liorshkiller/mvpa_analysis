@@ -92,16 +92,15 @@ class OpenFMRIAnalyzer(object):
 				subprocess.call(cmd,shell=True)
 				anat_reg_dir = os.path.join(subject.anatomical_dir(),'reg')
 				highres2mni_mat = os.path.join(anat_reg_dir,'highres2standard.mat')
-				highres2mni_warp = os.path.join(anat_reg_dir,'highres2standard_warp.nii.gz')
+				highres2standard_warp = os.path.join(anat_reg_dir,'highres2standard_warp.nii.gz')
 				example_func2highres_mat = os.path.join(reg_dir,'example_func2highres.mat')
 				example_func2standard_warp = os.path.join(reg_dir,'example_func2standard_warp.nii.gz')
 	
 				standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz') 
-				convert_warp = fsl.ConvertWarp(reference = standard_image,
-							       pre_mat   = example_func2highres_mat,
+				convert_warp = fsl.utils.ConvertWarp(reference = standard_image,
+							       premat   = example_func2highres_mat,
 							       warp1     = highres2standard_warp,
 							       out_file  = example_func2standard_warp)
-				print convert_warp.cmdline
 				convert_warp.run()
 				apply_warp = fsl.preprocess.ApplyWarp(ref_file   = standard_image,
 								      in_file    = mid_file,
@@ -326,17 +325,18 @@ class OpenFMRIAnalyzer(object):
 
 				bold_files = [os.path.join(directory, 'bold.nii.gz') for directory in directories]
 				mcf_files = [os.path.join(directory, 'bold_mcf.nii.gz') for directory in directories]
+				intnorm_files = [os.path.join(directory, 'bold_mcf_intnorm.nii.gz') for directory in directories]
 				if all(map(lambda x: os.path.isfile(x), mcf_files)):
 					print ">>> Motion Correction has already been performed"
 					continue
 
 				merge_dir = os.path.join(subject.functional_dir(), 'temp_{}_merged'.format(task))
-				if not os.path.isfile(merge_dir):
+				merge_file = os.path.join (merge_dir, 'bold.nii.gz'.format(task))
+				mcf_merge_file = merge_file.replace('.nii.gz','_mcf.nii.gz')
+				intnorm_merge_file = mcf_merge_file.replace('.nii.gz','_intnorm.nii.gz')
+				if not os.path.isdir(merge_dir):
 					
 					os.mkdir(merge_dir)
-					merge_file = os.path.join (merge_dir, 'bold.nii.gz'.format(task))
-					mcf_merge_file = merge_file.replace('.nii.gz','_mcf.nii.gz')
-					intnorm_merge_file = mcf_merge_file.replace('.nii.gz','_intnorm.nii.gz')
 
 
 				if not os.path.isfile(merge_file):
@@ -348,11 +348,10 @@ class OpenFMRIAnalyzer(object):
 					merger.inputs.merged_file = merge_file
 
 					merger.run()
-
 					self.__motion_correct_file__(merge_file, mcf_merge_file,subject,merge_dir)
 
 				func_lengths = [nibabel.load(x).shape[3] for x in bold_files]
-				for output_merge_file in [mcf_merge_file,intnorm_merge_file]:
+				for output_merge_file,output_files in zip([mcf_merge_file,intnorm_merge_file],[mcf_files,intnorm_files]):
 					split_dir = os.path.join(subject.functional_dir(), 'temp_split') + '/'
 					if(not os.path.isfile(split_dir)):
 						os.mkdir(split_dir)
@@ -364,12 +363,12 @@ class OpenFMRIAnalyzer(object):
 						split_dcms = sorted(result.outputs.out_files)
 						idx = 0
 
-						for mcf_file, run_length in zip(mcf_files, func_lengths):
+						for out_file, run_length in zip(output_files, func_lengths):
 							input_files = split_dcms[idx:idx+run_length]
 							merge = fsl.Merge(in_files = input_files,
 								  	  dimension='t',
 									  output_type = 'NIFTI_GZ',
-									  merged_file = mcf_file)
+									  merged_file = out_file)
 							merge.run()
 							idx += run_length
 
