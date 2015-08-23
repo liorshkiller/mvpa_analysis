@@ -279,15 +279,11 @@ Scale each volume of the run so that the median value of the run is set to 10000
 intnorm = pe.MapNode(interface=fsl.ImageMaths(suffix='_intnorm'),
                      iterfield=['in_file','op_string'],
                      name='intnorm')
-preproc.connect(maskfunc2, 'out_file', intnorm, 'in_file')
+#preproc.connect(maskfunc2, 'out_file', intnorm, 'in_file')
 
 """
 Define a function to get the scaling factor for intensity normalization
 """
-
-def getinormscale(medianvals):
-    return ['-mul %.10f'%(10000./val) for val in medianvals]
-preproc.connect(medianval, ('out_stat', getinormscale), intnorm, 'op_string')
 
 """
 Perform temporal highpass filtering on the data
@@ -306,7 +302,7 @@ meanfunc3 = pe.MapNode(interface=fsl.ImageMaths(op_string='-Tmean',
                                                 suffix='_mean'),
                        iterfield=['in_file'],
                        name='meanfunc3')
-preproc.connect(intnorm, ('out_file', pickfirst), meanfunc3, 'in_file')
+preproc.connect(mask_func2, 'out_file', meanfunc3, 'in_file')
 
 """
 Strip the structural image and coregister the mean functional image to the
