@@ -256,7 +256,7 @@ class OpenFMRIAnalyzer(object):
 		print ">>> Brain Extraction"
 
 		f = 0.5
-		g = 0.1
+		g = -0.1
 
 		bet = fsl.BET(in_file=input_image, 
 			      out_file=brain_image,
