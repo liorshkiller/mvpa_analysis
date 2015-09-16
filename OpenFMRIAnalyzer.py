@@ -122,7 +122,7 @@ class OpenFMRIAnalyzer(object):
 			os.mkdir(reg_dir)
 			flirt = fsl.FLIRT(in_file	 = brain_image, 
 					  reference	 = standard_image, 
-					  out_file 	 = out_file, 
+					  out_file 	 = os.path.join(reg_dir,"flirt.nii.gz"),#out_file, 
 					  out_matrix_file= out_mat_file, 
 					  cost		 = 'corratio', 
 					  dof		 = 12, 
@@ -139,14 +139,17 @@ class OpenFMRIAnalyzer(object):
 		standard_mask = fsl.Info.standard_image('MNI152_T1_2mm_brain_mask_dil.nii.gz')
 		if not os.path.isfile(output_fielf_coeff):
 			print ">>> FNIRT"
-			fnirt = fsl.FNIRT(warped_file	 = out_file, 
-					  in_file	 = anatomical_head, 
+			fnirt = fsl.FNIRT(warped_file	 = out_file,
+					  in_fwhm        = [10,4,2,2],
+					 
+					  in_file	 = brain_image,#anatomical_head, 
 					  affine_file	 = out_mat_file, 
 					  fieldcoeff_file= output_fielf_coeff, 
 					  jacobian_file	 = output_jacobian, 
-					  config_file	 = 'T1_2_MNI152_2mm', 
-					  ref_file	 = standard_head, 
-					  refmask_file	 = standard_mask)
+					  #config_file	 = 'T1_2_MNI152_2mm', 
+					  ref_file	 = standard_image#head, 
+					  #refmask_file	 = standard_mask
+					  )
 			fnirt.run()
 			cmd = 'fslview {} {} -t 0.5 '.format(standard_image,out_file)
 			pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -215,6 +218,7 @@ class OpenFMRIAnalyzer(object):
 		print ">>> Bias field estimation"
 
 		anat_filename = os.path.join(subject.anatomical_dir(), 'highres001.nii.gz')
+		return anat_filename
 		restore_file = os.path.join(subject.anatomical_dir(), 'highres001_restore.nii.gz')
 
 		if os.path.isfile(restore_file):
@@ -252,7 +256,7 @@ class OpenFMRIAnalyzer(object):
 
 		# Estimate bias field
 		input_image = self.estimate_bias_field(subject)
-
+		
 		print ">>> Brain Extraction"
 
 		f = 0.5
@@ -295,8 +299,6 @@ class OpenFMRIAnalyzer(object):
 			
 			pp.preproc.run()
 			# TODO: copy motion correction photos as well	
-			intnorm_file = output_file.replace('.nii.gz','_intnorm.nii.gz')
-			shutil.copy(os.path.join(directory,'preproc','intnorm','mapflow','_intnorm0','bold_dtype_mcf_mask_intnorm.nii.gz'),intnorm_file)
 			shutil.copy(os.path.join(directory,'preproc','maskfunc2','mapflow','_maskfunc20','bold_dtype_mcf_mask.nii.gz'),output_file)
 			cmd = "eog {}".format(os.path.join(directory,'preproc','realign','mapflow','_realign0','bold_dtype_mcf.nii.gz_rot.png'))
 			subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
@@ -325,7 +327,6 @@ class OpenFMRIAnalyzer(object):
 
 				bold_files = [os.path.join(directory, 'bold.nii.gz') for directory in directories]
 				mcf_files = [os.path.join(directory, 'bold_mcf.nii.gz') for directory in directories]
-				intnorm_files = [os.path.join(directory, 'bold_mcf_intnorm.nii.gz') for directory in directories]
 				if all(map(lambda x: os.path.isfile(x), mcf_files)):
 					print ">>> Motion Correction has already been performed"
 					continue
@@ -339,7 +340,7 @@ class OpenFMRIAnalyzer(object):
 					os.mkdir(merge_dir)
 
 
-				if not os.path.isfile(merge_file):
+				if not os.path.isfile(mcf_merge_file):
 					merger = fsl.Merge()
 
 					merger.inputs.in_files = bold_files
@@ -351,7 +352,7 @@ class OpenFMRIAnalyzer(object):
 					self.__motion_correct_file__(merge_file, mcf_merge_file,subject,merge_dir)
 
 				func_lengths = [nibabel.load(x).shape[3] for x in bold_files]
-				for output_merge_file,output_files in zip([mcf_merge_file,intnorm_merge_file],[mcf_files,intnorm_files]):
+				for output_merge_file,output_files in zip([mcf_merge_file],[mcf_files]):
 					split_dir = os.path.join(subject.functional_dir(), 'temp_split') + '/'
 					if(not os.path.isfile(split_dir)):
 						os.mkdir(split_dir)
