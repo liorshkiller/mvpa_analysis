@@ -24,7 +24,7 @@ class QualityAnalyzer(object):
 		for task , directories in subject.dir_tree('functional').iteritems():
 			for directory in directories:
                                 run_name = directory.split('/')[-1]
-				maskfile = os.path.join(subject.masks_dir(),run_name,'gray.nii.gz')
+				maskfile = os.path.join(subject.masks_dir(),run_name,'grey.nii.gz')
 				nonbrain_mask = os.path.join(subject.masks_dir(),run_name,'non_brain.nii.gz')
 
 				img = nib.load(os.path.join(directory,'bold_mcf.nii.gz'))

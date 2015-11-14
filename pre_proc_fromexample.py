@@ -117,7 +117,6 @@ motion_correct = pe.MapNode(interface=fsl.MCFLIRT(save_mats = True,
                             name='realign',
                             iterfield = ['in_file'])
 preproc.connect(img2float, 'out_file', motion_correct, 'in_file')
-preproc.connect(extract_ref, 'roi_file', motion_correct, 'ref_file')
 
 
 """
@@ -302,7 +301,7 @@ meanfunc3 = pe.MapNode(interface=fsl.ImageMaths(op_string='-Tmean',
                                                 suffix='_mean'),
                        iterfield=['in_file'],
                        name='meanfunc3')
-preproc.connect(mask_func2, 'out_file', meanfunc3, 'in_file')
+preproc.connect(maskfunc2, 'out_file', meanfunc3, 'in_file')
 
 """
 Strip the structural image and coregister the mean functional image to the
