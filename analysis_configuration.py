@@ -36,10 +36,10 @@ class AnalysisConfiguration(object):
 		self.neighbourhood_type = 'knn'
 		self.neighbourhood_size = 100
 
-		self.ds_type = 'beta_trial'
+		self.ds_type = 'betatrial'
 
 	def dir_name(self):
-		return '{}_{}_{}'.format(self.flavor, self.mask_name, self.dir_suffix)
+		return '{}_{}_{}_{}'.format(self.flavor, self.mask_name, self.ds_type, self.dir_suffix)
 
 	def get_cond_prefix(self,conditions):
 		return "{}_{}{}_{}{}".format(self.mask_name, self.neighbourhood_type,
@@ -55,8 +55,8 @@ class AnalysisConfiguration(object):
 		return get_linear_svm_measure()
 
 	def get_ds(self,study_path, subcode, conf, mask_name, flavor, TR):
-		if self.ds_type == 'beta_trial':
+		if self.ds_type == 'betatrial':
 			return create_betas_per_trial_with_pymvpa(study_path, subcode, conf, mask_name, flavor, TR)
-		elif self.ds_type == 'beta_run':
+		elif self.ds_type == 'betarun':
 			return create_betas_per_run_with_pymvpa(study_path, subcode, conf, mask_name, flavor)
 
