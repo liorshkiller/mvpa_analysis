@@ -27,7 +27,7 @@ class AnalysisConfiguration(object):
 		self.mask_name = '_shadowreg_cluster_mask_zstat2'
 		self.dir_suffix = 'linear'
 
-		self.num_of_permutations = 100
+		self.num_of_permutations = 0#100
 		self.conditions_to_compare = [['G1', 'G4'], ['G2', 'G3']]
 
 		self.mvpa_tasks = ['task001']
@@ -36,13 +36,13 @@ class AnalysisConfiguration(object):
 		self.neighbourhood_type = 'knn'
 		self.neighbourhood_size = 125
 
-		self.ds_type = 'beta_trial'
+		self.ds_type = 'betarun'
 
 	def dir_name(self):
 		return '{}_{}_{}'.format(self.flavor, self.mask_name, self.dir_suffix)
 
 	def get_cond_prefix(self,conditions):
-		return "{}_{}{}_{}{}".format(self.mask_name, self.neighbourhood_type,
+		return "{}_{}_{}{}_{}{}".format(self.mask_name, self.ds_type, self.neighbourhood_type,
 		                      self.neighbourhood_size, conditions[0], conditions[1])
 
 	def get_neighbourhood_strategy(self,dataset):
