@@ -7,7 +7,7 @@ from mvpa2.generators.partition import NFoldPartitioner
 from mvpa2.measures.base import CrossValidation
 from mvpa2.misc.errorfx import mean_match_accuracy
 from mvpa2.mappers.fx import mean_sample
-
+from ds_creation import *
 
 def get_linear_svm_measure():
 		clf = LinearCSVMC(space='condition')
@@ -36,6 +36,8 @@ class AnalysisConfiguration(object):
 		self.neighbourhood_type = 'knn'
 		self.neighbourhood_size = 125
 
+		self.ds_type = 'beta_trial'
+
 	def dir_name(self):
 		return '{}_{}_{}'.format(self.flavor, self.mask_name, self.dir_suffix)
 
@@ -52,4 +54,9 @@ class AnalysisConfiguration(object):
 	def get_sl_measure(self):
 		return get_linear_svm_measure()
 
+	def get_ds(self,study_path, subcode, conf, mask_name, flavor, TR):
+		if self.ds_type == 'beta_trial':
+			return create_betas_per_trial_with_pymvpa(study_path, subcode, conf, mask_name, flavor, TR)
+		elif self.ds_type == 'beta_run':
+			return create_betas_per_run_with_pymvpa(study_path, subcode, conf, mask_name, flavor)
 
