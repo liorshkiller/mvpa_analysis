@@ -7,60 +7,12 @@ from mvpa2.suite import *
 from mvpa2.datasets.eventrelated import fit_event_hrf_model
 import numpy as np
 import os
-from mvpa2.clfs.svm import LinearCSVMC
-#from single_subject_sl import do_searchlight
-#from rsasl import do_searchlight
 from glob2 import glob
 from os.path import join as _opj
 from group_level_map import apply_warp
 from datetime import datetime
 
 import pickle
-
-
-def create_betas_with_pymvpa(study_path, subj, conf, mask_name, flavor,TR):
-	dhandle = OpenFMRIDataset(study_path)
-	model = 1
-	task = 1
-	# Do this for other tasks as well. not only the first
-	mask_fname = _opj(study_path,"sub{:0>3d}".format(subj),"masks",conf.mvpa_tasks[0],"{}.nii.gz".format(mask_name))
-	print mask_fname
-	run_datasets = []
-	for run_id in dhandle.get_task_bold_run_ids(task)[subj]:
-		if type(run_id) == str:
-			continue
-		all_events = dhandle.get_bold_run_model(model, subj, run_id)
-		run_events = []
-		i=0
-		for event in all_events:
-			if event['task']==task:
-				event['condition'] = '{}-{}'.format(event['condition'],i)
-				run_events.append(event)
-				i+=1
-
-		# load BOLD data for this run (with masking); add 0-based chunk ID
-		run_ds = dhandle.get_bold_run_dataset(subj, task, run_id,
-											  flavor = flavor,
-											  chunks=run_id -1,
-											  mask=mask_fname)
-		# convert event info into a sample attribute and assign as 'targets'
-		run_ds.sa.time_coords = run_ds.sa.time_indices*TR
-		print run_id
-
-		run_ds.sa['targets'] = events2sample_attr(
-					run_events, run_ds.sa.time_coords, noinfolabel='rest')
-		# additional time series preprocessing can go here
-		poly_detrend(run_ds, polyord=1, chunks_attr='chunks')
-		zscore(run_ds, chunks_attr='chunks', param_est=('targets', ['rest']), dtype='float32')
-		glm_dataset = fit_event_hrf_model(run_ds, run_events,time_attr='time_coords',condition_attr='condition')
-		glm_dataset.sa['targets'] = [x[:x.find('-')] for x in glm_dataset.sa.condition]
-		glm_dataset.sa.condition = glm_dataset.sa['targets']
-		glm_dataset.sa['chunks'] = [run_id -1] * len(glm_dataset.samples)
-		run_datasets.append(glm_dataset)
-	return vstack(run_datasets, 0)
-
-def create_beta_with_fsl():
-	pass
 
 
 def run_searchlight(op, subjectdir, conf, output_dir,TR=2):
@@ -80,7 +32,7 @@ def run_searchlight(op, subjectdir, conf, output_dir,TR=2):
 	if did_run:
 		return
 
-	fds = create_betas_with_pymvpa(study_path, subcode, conf, mask_name, flavor, TR)
+	fds = conf.get_ds(study_path, subcode, conf, mask_name, flavor, TR)
 	print fds.summary()
 	warp = glob(_opj(study_path,'sub{:0>3d}'.format(subcode), '**', conf.mvpa_tasks[0], 'reg', 'example_func2standard_warp.nii.gz'))[0]
 
