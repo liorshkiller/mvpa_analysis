@@ -27,14 +27,14 @@ class AnalysisConfiguration(object):
 		self.mask_name = '_shadowreg_cluster_mask_zstat2'
 		self.dir_suffix = 'linear'
 
-		self.num_of_permutations = 50
+		self.num_of_permutations = 100
 		self.conditions_to_compare = [['G1', 'G4'], ['G2', 'G3']]
 
 		self.mvpa_tasks = ['task001']
 		self.num_of_volumes_to_delete = 4
 
 		self.neighbourhood_type = 'knn'
-		self.neighbourhood_size = 100
+		self.neighbourhood_size = 125
 
 		self.ds_type = 'betatrial'
 
