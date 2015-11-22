@@ -109,11 +109,14 @@ class SubjectDir(object):
                 df['cond'] = df.stim1.str.split('\\').str[1]
                 conds.update(dict((cond, df[df.cond.eq(cond)]) for cond in df.cond.unique()))
                 for condition_number, key in enumerate(sorted(conds.keys())):
+
                     value = conds[key]
+                    stim1s = value['stim1']
                     col_idx = df.columns.get_loc("start stim")
                     value = value.ix[:, col_idx:col_idx + 1]
                     value['start stim'] = value['start stim'].astype(int)
                     value['start stim']= value['start stim'] - (trim_volumes) * TR
+
                     if 'MVPA' in run_file:
                         value['length'] = 4
                     # TODO: Replace this shit!
@@ -130,7 +133,9 @@ class SubjectDir(object):
                     # condition mapping for one beta per condition
                     value.to_csv(os.path.join(self.model_dir(1), 'onsets', task_sequence, condition_name), sep='\t',
                                  index=False, header=False)
-                    # TODO: add condition mapping for one beta per trial
+                    value['first_pair'] = [stim1.split('\\')[-1] for stim1 in stim1s]
+                    value.to_csv(os.path.join(self.model_dir(2), 'onsets', task_sequence, condition_name), sep='\t',
+                                 index=False, header=False)
 
     def __dcm_convert__(self, source_directory, target_directory, target_filename, rename_prefix, erase=False):
         cmd = "dcm2nii -o {} {} > /dev/null".format(target_directory, source_directory)
