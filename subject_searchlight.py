@@ -30,6 +30,7 @@ def run_searchlight(op, subjectdir, conf, output_dir,TR=2):
 		if len(glob(output)) == 0:
 			did_run = False
 	if did_run:
+		print "already ran all sl for {}".format(output_dir)
 		return
 
 	fds = conf.get_ds(study_path, subcode, conf, mask_name, flavor, TR)
