@@ -13,10 +13,12 @@ from scipy.stats import percentileofscore
 if __name__ == '__main__':
 	
 	conf = AnalysisConfiguration()
+	print conf.dir_name()
 	subj = int(sys.argv[1])
 	directory = '/home/user/data/LP/sub{:0>3d}/results/'.format(subj)
 	for pair in conf.conditions_to_compare:
-			files = sorted(glob(_opj(directory,'**','{}*{}{}*.p'.format(conf.mask_name,pair[0],pair[1]))))
+			#print _opj(directory,conf.dir_name(),'{}*{}{}*.p'.format(conf.mask_name,pair[0],pair[1]))
+			files = sorted(glob(_opj(directory,conf.dir_name(),'{}*{}{}*.p'.format(conf.mask_name,pair[0],pair[1]))))
 			plt.figure()
 			plt.subplot(211)
 			plt.title('sub{:0>3d}-{}{}'.format(subj,pair[0],pair[1]))
@@ -50,5 +52,6 @@ if __name__ == '__main__':
 			perc_results = map2nifti(real_map, imghdr=nii_file.header)
 			perc_nii_filename = real_f.replace("_sl_map.p", "-percentiles.nii.gz")
 			perc_results.to_filename(perc_nii_filename)
+			#raw_input()
 	plt.savefig('/tmp/sub{:0>3d}_{}{}'.format(subj,pair[0],pair[1]))
 	raw_input()
