@@ -8,28 +8,23 @@ import os
 import numpy as np
 import nibabel as nib
 
-def generate_group_level_map(mni_files, output_dir):
+def generate_group_level_map(mni_files, output_dir, conf):
+	avg = []
+	for conditions in conf.conditions_to_compare:
+		ext_files = filter(lambda f: '_{}{}'.format(conditions[0],conditions[1]) in f, mni_files)
+		ext_prefix = "{}_{}".format(conf.get_cond_prefix(conditions), len(ext_files))
 
-    ext_files = filter(lambda f: '_G1G4' in f, mni_files)
-    ext_prefix = "ext_{}".format(len(ext_files))
-    int_files = filter(lambda f: '_G2G3' in f, mni_files)
-    int_prefix = "int_{}".format(len(int_files))
-
-    print "14:{}".format(len(ext_files))
-    print "23:{}".format(len(int_files))
-    thrs = [0.58, 0.6]
-    ext_all, ext_avg = calc_summary_niis(ext_files, output_dir, ext_prefix)
-    int_all, int_avg = calc_summary_niis(int_files, output_dir, int_prefix)
-    for thr in thrs:
-        ext_file = process_files(ext_prefix, output_dir, thr, ext_all, ext_avg)
-        int_file = process_files(int_prefix, output_dir, thr, int_all, int_avg)
-        standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
-        cmd = "fslview {} {} -l Red -t 0.5 -b 3,10 {} -l Blue -t 0.5 -b 3,10 ".format(standard_image,
-                                                                                       ext_file,
-                                                                                       int_file)
-        pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+		print "{}: {}".format(conditions,len(ext_files))
+		thrs = [0.58, 0.6]
+		ext_all, ext_avg = calc_summary_niis(ext_files, output_dir, ext_prefix)
+		avg.append(ext_avg)
+    	for thr in thrs:
+        	ext_file = process_files(ext_prefix, output_dir, thr, ext_all, ext_avg)
+	print avg	
+	standard_image = fsl.Info.standard_image('MNI152_T1_2mm_brain.nii.gz')
+	cmd = "fslview {} {} -l Red -t 0.7 -b 1,1.1 {} -l Blue -t 0.7 -b 1,1.1 ".format(standard_image,avg[0].get_filename(),avg[1].get_filename())
+	pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                shell=True, preexec_fn=os.setsid)
-
 
 def process_files(prefix, output_dir, thr,all_file, avg_file):
     from scipy import ndimage

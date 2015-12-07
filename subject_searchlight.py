@@ -24,7 +24,7 @@ def run_searchlight(op, subjectdir, conf, output_dir,TR=2):
 
 	for condition in conditions:
 		did_run = True
-		output = _opj(output_dir, '*{}{}*'.format(condition[0], condition[1]))
+		output = _opj(output_dir, '*{}*'.format(conf.get_cond_prefix(condition)))
 		if conf.num_of_permutations > 0:
 			output = "{}_perm{}".format(output,conf.num_of_permutations)
 		if len(glob(output)) == 0:

@@ -35,7 +35,9 @@ def perm_hist(subj):
 	data_dir = os.environ.get('DATA_DIR') or '/home/user/data'
 	sub_dir = _opj(data_dir,conf.study_name,'sub{:0>3d}'.format(subj))
 	directory = _opj(data_dir,'LP/sub{:0>3d}/results/'.format(subj))
+	print conf.dir_name()
 	for pair in conf.conditions_to_compare:
+			#print _opj(directory,conf.dir_name(),'{}*{}{}*.p'.format(conf.mask_name,pair[0],pair[1]))
 			files = sorted(glob(_opj(directory,conf.dir_name(),'{}*{}{}*.p'.format(conf.mask_name,pair[0],pair[1]))))
 			plt.figure()
 			plt.subplot(211)
